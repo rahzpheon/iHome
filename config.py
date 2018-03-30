@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import os, base64
 import redis
 from datetime import timedelta
