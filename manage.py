@@ -2,6 +2,7 @@
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from iHome import get_app,db
+from iHome import models
 
 
 # 提供参数,使用工厂生产的app

@@ -5,4 +5,4 @@ from flask import Blueprint
 api = Blueprint('api_1_0', __name__, url_prefix='/api/1.0')
 
 # 导入一次蓝图路由
-from . import index
+from . import index,verify
