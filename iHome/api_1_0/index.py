@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
-from flask import Blueprint
+from . import api
 
-# 首页视图蓝图
-api = Blueprint('api', __name__)
 
 # 蓝图注册路由
 @api.route('/', methods=['GET', 'POST'])
@@ -14,4 +12,4 @@ def foo():
     # from flask import session
     # session['1232'] = 'hahaha'
 
-    return 'Hello Blueprint666!'
+    return 'Hello Blueprint999!'

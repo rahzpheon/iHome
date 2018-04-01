@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
-from flask import Flask
-from config import configs
-from flask_sqlalchemy import SQLAlchemy
 import redis
+from flask import Flask
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
-from iHome.index import api
+
+from config import configs
+from iHome import api_1_0
 
 # 部分参数由于封装在方法内,需要提取出来方便manage导入使用
 
@@ -42,7 +43,7 @@ def get_app(config_name):
     CSRFProtect(app)
 
     # 应用注册蓝图
-    app.register_blueprint(api)
+    app.register_blueprint(api_1_0.api, url_prefix='/api/1.0')
 
     # 返回应用实例
     return app

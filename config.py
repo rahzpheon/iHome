@@ -30,3 +30,28 @@ class Config(object):
 
     # 密钥,提供session,csrf等使用
     SECRET_KEY = base64.b64encode(os.urandom(48))
+
+
+class DevelopConfig(Config):
+    '''开发环境'''
+    pass
+
+
+class UnitTestConfig(Config):
+    '''单元测试环境'''
+    pass
+
+
+class ProductionConfig(Config):
+    '''生产环境'''
+    pass
+
+
+
+# 工厂材料:提供给工厂的参数-类映射表
+configs = {
+    'default':Config,
+    'develop':DevelopConfig,
+    'unittest':UnitTestConfig,
+    'product':ProductionConfig
+}
