@@ -12,8 +12,8 @@ manager = Manager(app)
 
 # 自定义脚本命令:
 # 以后可以通过脚本命令 迁移数据库
-# Migrate(app, db)
-# manager.add_command('db', MigrateCommand)
+Migrate(app, db)
+manager.add_command('db', MigrateCommand)
 
 
 
