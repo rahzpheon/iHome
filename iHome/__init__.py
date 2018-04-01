@@ -44,7 +44,9 @@ def get_app(config_name):
 
     # 应用注册蓝图
     from iHome.api_1_0 import api
-    app.register_blueprint(api, url_prefix='/api/1.0')
+    app.register_blueprint(api)
+    from web_html import html_blue
+    app.register_blueprint(html_blue)
 
     # 返回应用实例
     return app

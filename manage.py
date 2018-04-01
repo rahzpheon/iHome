@@ -21,7 +21,7 @@ manager.add_command('db', MigrateCommand)
 if __name__ == "__main__":
 
     # 测试路由是否成功添加
-    # print app.url_map
+    print app.url_map
     # 运行脚本
     manager.run()
     # app.run(host='192.168.109.128', port=5000)
