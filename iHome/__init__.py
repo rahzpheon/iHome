@@ -4,7 +4,7 @@ from flask import Flask
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
-
+from iHome.utils.common import RegexConverter
 from config import configs
 
 
@@ -42,11 +42,16 @@ def get_app(config_name):
     # 采用CSRF保护
     CSRFProtect(app)
 
-    # 应用注册蓝图
+    # 注册自定义转换器,写在使用它的代码之前
+    app.url_map.converters["re"] = RegexConverter
+
+    # 注册蓝图
     from iHome.api_1_0 import api
     app.register_blueprint(api)
-    from web_html import html_blue
+    from iHome.web_html import html_blue
     app.register_blueprint(html_blue)
+
+
 
     # 返回应用实例
     return app
