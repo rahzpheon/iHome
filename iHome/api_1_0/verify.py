@@ -52,14 +52,17 @@ def get_image_code():
     response.headers['Content-Type'] = 'image/jpg'
     return response
 
-@api.route('/sms_code')
+@api.route('/sms_code', methods=['POST'])
 def get_sms_code():
     '''获取短信验证码'''
 
     # 获取参数
-    uuid = request.args.get('uuid')
-    mobile = request.args.get('mobile')
-    imageCode = request.args.get('imageCode')
+    json_dict = request.get_json()
+
+    uuid = json_dict.get('uuid');current_app.logger.debug('uuid:' + uuid)
+    mobile = json_dict.get('mobile');current_app.logger.debug('uuid:' + uuid)
+    imageCode = json_dict.get('imageCode');current_app.logger.debug('uuid:' + uuid)
+
     # 校验参数
     # 1.验证参数完整性
     if not all([uuid, mobile, imageCode]):
