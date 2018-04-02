@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import os, base64
 import redis
+import logging
 from datetime import timedelta
 
 
@@ -31,10 +32,13 @@ class Config(object):
     # 密钥,提供session,csrf等使用
     SECRET_KEY = base64.b64encode(os.urandom(48))
 
+    # 日志等级
+    LOGGING_LEVEL = logging.DEBUG
 
 class DevelopConfig(Config):
     '''开发环境'''
-    pass
+    # 日志等级
+    LOGGING_LEVEL = logging.DEBUG
 
 
 class UnitTestConfig(Config):
@@ -44,7 +48,8 @@ class UnitTestConfig(Config):
 
 class ProductionConfig(Config):
     '''生产环境'''
-    pass
+    # 日志等级
+    LOGGING_LEVEL = logging.WARNING
 
 
 
