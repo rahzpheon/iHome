@@ -66,6 +66,7 @@ function sendSMSCode() {
         type:'post',
         data:JSON.stringify(params),
         contentType:'application/json',
+        headers:{'X-CSRFToken':getCookie('csrf_token')},
         success: function (response) {
             if (response.errno == '0'){
                 // 发送成功

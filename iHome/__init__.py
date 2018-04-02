@@ -64,7 +64,7 @@ def get_app(config_name):
     Session(app)
 
     # 采用CSRF保护
-    # CSRFProtect(app)
+    CSRFProtect(app)
 
     # 注册自定义转换器,写在使用它的代码之前
     app.url_map.converters["re"] = RegexConverter
