@@ -41,8 +41,19 @@ class User(BaseModel, db.Model):
         # 外界传入的明文数据
         self.password_hash = generate_password_hash(value)
 
+    # 密码校验
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    # 用户信息字典
+    def to_dict(self):
+        res_dict = {
+            'name' : self.name,
+            'mobile' : self.mobile,
+            'avatar_url' : 'http://oyucyko3w.bkt.clouddn.com/' + (self.avatar_url if self.avatar_url else "")
+        }
+
+        return res_dict
 
 class Area(BaseModel, db.Model):
     """城区"""
