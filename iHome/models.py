@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from iHome import constants
 from . import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class BaseModel(object):
@@ -29,6 +30,19 @@ class User(BaseModel, db.Model):
     houses = db.relationship("House", backref="user")  # 用户发布的房屋
     orders = db.relationship("Order", backref="user")  # 用户下的订单
 
+    # 加密property
+    @property
+    def password(self):
+        # 不可以直接通过属性读取
+        raise AttributeError('can not read')
+
+    @password.setter
+    def password(self, value):
+        # 外界传入的明文数据
+        self.password_hash = generate_password_hash(value)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 class Area(BaseModel, db.Model):
     """城区"""

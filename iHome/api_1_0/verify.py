@@ -1,15 +1,16 @@
 # -*- coding:utf-8 -*-
 from . import api
 from iHome.utils.captcha.captcha import captcha
-from flask import make_response, request, abort, jsonify, current_app
-from iHome import redis_store
+from flask import make_response, request, abort, jsonify, current_app, session
+from iHome import redis_store,db
 from .. import constants
 from iHome.utils.response_code import RET
 import re
 
 import random
 from iHome.utils.SendTemplateSMS import CCP
-
+from iHome.models import User
+from werkzeug.security import generate_password_hash
 
 
 @api.route('/image_code')
@@ -52,6 +53,7 @@ def get_image_code():
     response.headers['Content-Type'] = 'image/jpg'
     return response
 
+# 获取短信注册码
 @api.route('/sms_code', methods=['POST'])
 def get_sms_code():
     '''获取短信验证码'''
@@ -114,5 +116,4 @@ def get_sms_code():
         return jsonify(errno=RET.OK, errmsg=u'发送验证码成功')
     else:
         return jsonify(errno=RET.THIRDERR, errmsg=u'发送验证码失败')
-
 

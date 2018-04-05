@@ -70,7 +70,24 @@ function sendSMSCode() {
         success: function (response) {
             if (response.errno == '0'){
                 // 发送成功
-                alert(response.errmsg);
+                // 使用倒计时１分钟
+                var num = 60;
+                var t = setInterval(function () {
+
+                    if (num == 0){
+                        //　倒计时完成,清除定时器
+                        clearInterval(t);
+                        // 重置内容
+                        $('.phonecode-a').html('获取验证码');
+                        // 重新添加点击事件
+                        $('.phonecode-a').attr('onclick', 'sendSMSCode();');
+                    } else {
+                        // 正在倒计时,显示秒数
+                        $('.phonecode-a').html(num + '秒');
+                    }
+
+                    num -= 1;
+                }, 1000)    // １秒１次
             } else {
                 // 发送失败
                 // 重新添加点击事件
@@ -104,4 +121,61 @@ $(document).ready(function() {
     });
 
     // TODO: 注册的提交(判断参数是否为空)
-})
+    $('.form-register').submit(function (event) {
+
+        // 阻止默认提交
+        event.preventDefault();
+
+        //　获取需要提交的参数
+        var mobile = $("#mobile").val();
+        var sms_code = $('#phonecode').val();
+        var password = $("#password").val();
+        var password2 = $("#password2").val();
+
+        // 校验参数,当参数错误时显示提示信息
+        // 而前面的代码已完成加载时隐藏提示信息的功能
+        if (!mobile){
+            $('#mobile-err span').html('请填写正确的手机号');
+            $('#mobile-err').show();
+        }
+        if (!sms_code){
+            $('#mobile-err span').html('请填写短信验证码');
+            $('#mobile-err').show();
+        }
+        if (!password){
+            $('#mobile-err span').html('请填写密码');
+            $('#mobile-err').show();
+        }
+        if (password2 != password){
+            $('#mobile-err span').html('两次输入的密码不一致');
+            $('#mobile-err').show();
+        }
+
+
+        // 组装
+        var params = {
+            'mobile':mobile,
+            'sms_code':sms_code,
+            'password':password,
+            'password2':password2,
+        }
+
+        // 发送注册请求
+        $.ajax({
+            url:'/api/1.0/users',
+            type:'post',
+            data:JSON.stringify(params),
+            contentType:'application/json',
+            headers:{'X-CSRFToken':getCookie('csrf_token')},
+            success:function (response) {
+                if (response.errno == '0'){
+                    //　注册成功,跳转主页
+                    alert(response.errmsg);
+                     location.href = '/';
+                } else {
+                    alert(response.errmsg);
+                }
+            }
+        });
+    });
+});
