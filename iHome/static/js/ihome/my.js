@@ -20,9 +20,12 @@ $(document).ready(function(){
             $('#user-name').html(name);
             $('#user-mobile').html(mobile);
 
-        } else {
+        } else if(response.errno == '4101'){
             alert(response.errmsg);
             location.href = '/';
+
+        } else {
+            alert(response.errmsg);
         }
     })
 });

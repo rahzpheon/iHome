@@ -1,18 +1,21 @@
 # -*- coding:utf-8 -*-
-from flask import session, jsonify, request, current_app
+from flask import session, jsonify, request, current_app, g
 from iHome import db, constants
 from iHome.api_1_0 import api
 from iHome.models import User
 from iHome.utils.response_code import RET
 from iHome.utils.image_storage import upload_image
-
+from iHome.utils.common import login_required
 
 # 个人中心
 @api.route('/users')
+@login_required
 def get_user_info():
     # 0.验证用户登陆
     # 1.获取参数:用户id
-    user_id = session.get('user_id')
+    # user_id = session.get('user_id')
+    user_id = g.user_id
+
     if not user_id:
         return jsonify(errno=RET.NODATA, errmsg="用户不存在")
 
@@ -30,6 +33,7 @@ def get_user_info():
 
 # 上传用户头像功能
 @api.route('/users/avatar', methods=['POST'])
+@login_required
 def upload_avatar():
     """提供用户头像上传
         0.先判断用户是否登录 @login_required
@@ -55,7 +59,7 @@ def upload_avatar():
 
     # 3.存储key至用户对象中
     try:
-        user_id = session.get('user_id')
+        user_id = g.user_id
         user = User.query.get(user_id)
     except Exception as e:
         current_app.logger.error(e)
@@ -80,6 +84,7 @@ def upload_avatar():
 
 # 修改用户名
 @api.route('/users/name', methods=['PUT'])
+@login_required
 def set_user_name():
     '''
     0.判断用户登陆状态
@@ -99,7 +104,7 @@ def set_user_name():
         return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
 
     # 3.
-    user_id = session.get('user_id')
+    user_id = g.user_id
     try:
         user = User.query.get(user_id)
     except Exception as e:

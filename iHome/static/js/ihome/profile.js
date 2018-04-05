@@ -17,8 +17,13 @@ $(document).ready(function () {
         if (response.errno == '0'){
             $('#user-avatar').attr('src', response.data.avatar_url);
             $('#user-name').val(response.data.name);
+
+        } else if(response.errno == '4101'){
+            alert(response.errmsg);
+            location.href = '/';
+
         } else {
-             alert(response.errmsg);
+            alert(response.errmsg);
         }
     })
 
