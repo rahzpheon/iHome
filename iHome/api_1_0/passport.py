@@ -90,3 +90,18 @@ def login():
     session['name'] = user.name
 
     return jsonify(errno=RET.OK, errmsg='登陆成功')
+
+# 退出登陆
+@api.route('/sessions', methods=['DELETE'])
+def logout():
+
+    try:
+        session.pop('user_id')
+        session.pop('name')
+        session.pop('mobile')
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.SESSIONERR, errmsg="登出失败")
+
+    return jsonify(errno=RET.OK, errmsg="退出登陆成功")

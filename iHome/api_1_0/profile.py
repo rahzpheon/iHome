@@ -126,3 +126,79 @@ def set_user_name():
 
         # 6.响应结果
     return jsonify(errno=RET.OK, errmsg='修改用户名成功')
+
+# 获取实名认证信息
+@api.route('/users/auth')
+@login_required
+def get_user_auth():
+
+    user_id = g.user_id
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        pass
+
+    real_name = user.real_name
+
+    if not real_name:
+        return jsonify(errno=RET.NODATA, errmsg="认证信息为空")
+
+    data = {
+        'real_name':user.real_name,
+        'id_card':user.id_card
+    }
+
+    return jsonify(errno=RET.OK, errmsg="获取认证信息成功", data=data)
+
+
+# 提交实名认证信息
+@api.route('/users/auth', methods=['POST'])
+@login_required
+def set_user_auth():
+    '''
+    0.判断登陆状态
+    1.接受用户参数　real_name, id_card
+    2.校验
+    3.查询登陆用户模型对象
+    4.赋值
+    5.写入数据库
+    6.返回响应
+    '''
+    # 1.
+    json_dict = request.json
+    real_name = json_dict.get('real_name')
+    id_card = json_dict.get('id_card')
+
+    # 2.
+    if not all([real_name, id_card]):
+        return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
+
+    # 校验身份证
+
+    # 3.获取用户
+    user_id = g.user_id
+    try:
+        user = User.query.get(user_id)
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户信息失败")
+
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg="用户不存在")
+
+    # 4.赋值
+    user.real_name = real_name
+    user.id_card = id_card
+
+    # 5.写入数据库
+    try:
+        db.session.commit()
+
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="修改失败")
+
+    # 6.响应
+    return jsonify(errno=RET.OK, errmsg="修改成功")
