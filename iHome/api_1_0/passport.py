@@ -105,3 +105,12 @@ def logout():
         return jsonify(errno=RET.SESSIONERR, errmsg="登出失败")
 
     return jsonify(errno=RET.OK, errmsg="退出登陆成功")
+
+# 登陆验证视图,同时为首页提供用户名
+@api.route('/sessions')
+def login_check():
+
+    user_id = session.get('user_id')
+    name = session.get('name')
+
+    return jsonify(errno=RET.OK, errmsg="OK", data={'user_id':user_id, 'name':name})

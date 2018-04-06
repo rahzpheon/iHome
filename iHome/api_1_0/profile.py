@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask import session, jsonify, request, current_app, g
-from iHome import db, constants
+from iHome import db, constants, redis_store
 from iHome.api_1_0 import api
 from iHome.models import User
 from iHome.utils.response_code import RET
@@ -116,7 +116,7 @@ def set_user_name():
     # 4.
     user.name = new_name
 
-    # 5.
+    # 5.存储至数据库
     try:
         db.session.commit()
     except Exception as e:
@@ -124,7 +124,10 @@ def set_user_name():
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errmsg='存储用户名失败')
 
-        # 6.响应结果
+    # 5.1　存储至session
+    session['name'] = new_name
+
+    # 6.响应结果
     return jsonify(errno=RET.OK, errmsg='修改用户名成功')
 
 # 获取实名认证信息
