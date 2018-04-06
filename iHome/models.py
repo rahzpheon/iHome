@@ -55,6 +55,13 @@ class User(BaseModel, db.Model):
 
         return res_dict
 
+    # 用户认证信息字典
+    def auth_to_dict(self):
+        res_dict = {
+            'real_name':self.real_name,
+            'id_card':self.id_card
+        }
+
 class Area(BaseModel, db.Model):
     """城区"""
 

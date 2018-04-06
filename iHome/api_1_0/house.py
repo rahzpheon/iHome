@@ -1,0 +1,165 @@
+# -*- coding:utf-8 -*-
+from flask import current_app, g, jsonify, request
+from iHome import constants
+from iHome.api_1_0 import api
+from iHome.models import Area, House, Facility, HouseImage
+from iHome.utils.response_code import RET
+from iHome.utils.common import login_required
+from iHome.utils.image_storage import upload_image
+from iHome import db,redis_store
+
+# 查询地区信息
+@api.route('/areas')
+def get_areas():
+
+    # 获取所有地区对象
+    areas = Area.query.all()
+
+    # 将所有地区对象的信息放入列表
+    area_dict_list = []
+    for area in areas:
+        area_dict_list.append(area.to_dict())
+
+    # 放入字典中,在前端调用时更加直观
+    params = {'area_dict_list':area_dict_list}
+
+    # 返回响应(当地区信息为空时返回空数据)
+    return jsonify(errno=RET.OK, errmsg="成功", data=params)
+
+# 上传房屋信息
+@api.route('/houses', methods=['POST'])
+@login_required
+def pub_house():
+
+    # 1.获取所有参数
+    json_dict = request.json
+    if not json_dict:
+        return jsonify(errno=RET.PARAMERR, errmsg='请输入参数')
+
+    title = json_dict.get('title')
+    price = json_dict.get('price')
+    address = json_dict.get('address')
+    area_id = json_dict.get('area_id')
+    room_count = json_dict.get('room_count')
+    acreage = json_dict.get('acreage')
+    unit = json_dict.get('unit')
+    capacity = json_dict.get('capacity')
+    beds = json_dict.get('beds')
+    deposit = json_dict.get('deposit')
+    min_days = json_dict.get('min_days')
+    max_days = json_dict.get('max_days')
+
+    if not all(
+            [title, price, address, area_id, room_count, acreage, unit, capacity, beds, deposit, min_days, max_days]):
+        return jsonify(errno=RET.PARAMERR, errmsg='参数缺失')
+
+    # 校验小数,避免产生精度问题
+    price = int(float(price)* 100)
+    deposit = int(float(deposit)* 100)
+
+    # 实例化对象并赋值
+    house = House()
+    house.user_id = g.user_id
+    house.area_id = area_id
+    house.title = title
+    house.price = price
+    house.address = address
+    house.room_count = room_count
+    house.acreage = acreage
+    house.unit = unit
+    house.capacity = capacity
+    house.beds = beds
+    house.deposit = deposit
+    house.min_days = min_days
+    house.max_days = max_days
+
+    # 为关联对象赋值
+    facilities = json_dict.get('facility')
+    facilities = Facility.query.filter(Facility.id.in_(facilities)).all()
+    house.facilities = facilities
+
+    # 保存到数据库
+    try:
+        db.session.add(house)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="新建房屋失败")
+
+    # 返回响应
+    data = {'house_id':house.id}
+    return jsonify(errno=RET.OK, errmsg="OK", data=data)
+
+# 上传房屋图片
+@api.route('/houses/image', methods=['POST'])
+@login_required
+def upload_house_image():
+    # 获取参数
+    house_id = request.form.get('house_id')
+    if not house_id:
+        return jsonify(errno=RET.PARAMERR, errmsg="缺少必要参数")
+    try:
+        img_data = request.files.get('house_image')
+    except Exception as e:
+        return jsonify(errno=RET.PARAMERR, errmsg="无法接受图片")
+
+    # 校验参数
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋数据失败")
+
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="房屋不存在")
+
+    # 调用方法,将文件上传至七牛云,获取返回的key
+    try:
+        key = upload_image(img_data)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR, errmsg="上传失败")
+
+    # 将house_id与key保存至数据库
+    house_img = HouseImage()
+    house_img.house_id = house_id
+    house_img.url = key
+
+    # 尝试选择房屋默认图片
+    if not house.index_image_url:
+        house.index_image_url = key
+
+    try:
+        db.session.add(house_img)
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errms='存储房屋图片失败')
+
+    # 返回响应,因为要实时刷新图片,拼接url
+    params = {
+        'img_url':constants.QINIU_DOMIN_PREFIX + key
+    }
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=params)
+
+# 获取房屋信息
+@api.route('/houses/detail/<int:house_id>')
+def get_house_detail(house_id):
+
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
+
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="房屋不存在")
+
+    params = {
+        'house' : house.to_full_dict()
+    }
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=params)

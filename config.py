@@ -26,7 +26,7 @@ class Config(object):
     #SESSION_KEY_PREFIX     # 存储前缀,默认为'session:'
     SESSION_USE_SIGNER = True   # 是否对session使用密钥签名
     SESSION_PERMANENT = True    # 设置session生命周期,默认关闭浏览器后消失
-    PERMANENT_SESSION_LIFETIME = timedelta(days=1)  # 全局设置session生命
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # 全局设置session生命
 
 
     # 密钥,提供session,csrf等使用

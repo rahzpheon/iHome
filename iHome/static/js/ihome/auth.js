@@ -50,6 +50,9 @@ $(document).ready(function(){
                             $('#real-name').attr('disabled', true);
                             $('#id-card').attr('disabled', true);
                             $('.btn-success').hide()
+                        } else if (response.errno == '4101') {
+                            alert(response.errmsg);
+                            location.href = '/';
                         } else {
                             alert(response.errmsg);
                         }
