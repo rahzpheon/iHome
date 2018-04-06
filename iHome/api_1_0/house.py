@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from flask import current_app, g, jsonify, request
+from flask import current_app, g, jsonify, request, session
 from iHome import constants
 from iHome.api_1_0 import api
 from iHome.models import Area, House, Facility, HouseImage
@@ -162,4 +162,7 @@ def get_house_detail(house_id):
         'house' : house.to_full_dict()
     }
 
-    return jsonify(errno=RET.OK, errmsg="OK", data=params)
+    # 传递当前用户id
+    login_user_id = session.get('user_id', -1)
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=params, login_user_id=login_user_id)

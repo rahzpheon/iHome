@@ -45,6 +45,15 @@ $(document).ready(function(){
             // 2.使用数据进行渲染
             $('.detail-con').html(html_detail);
 
+            // 判断用户身份决定是否展示订房按钮
+            if (response.data.house.user_id != response.login_user_id){
+                // 显示按钮
+                $('.book-house').attr('href', '/api/1.0/booking?hid=' + houseId)
+                $('.book-house').show();
+
+            } else {
+                $('.book-house').hide();
+            }
         } else {
             alert(response.errmsg);
         }
