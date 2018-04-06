@@ -166,3 +166,19 @@ def get_house_detail(house_id):
     login_user_id = session.get('user_id', -1)
 
     return jsonify(errno=RET.OK, errmsg="OK", data=params, login_user_id=login_user_id)
+
+# 首页获取房屋信息
+@api.route('/houses/index')
+def get_house_index():
+    # 获取最新的5条房屋信息
+    try:
+        index_houses = House.query.order_by(House.create_time.desc()).limit(constants.HOME_PAGE_MAX_HOUSES)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
+
+    house_dict_list = []
+    for house in index_houses:
+        house_dict_list.append(house.to_basic_dict())
+
+    return jsonify(errno=RET.OK, errmsg="", data={'house_dict_list':house_dict_list})

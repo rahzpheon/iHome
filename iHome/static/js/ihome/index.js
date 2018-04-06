@@ -57,6 +57,17 @@ function goToSearchPage(th) {
     location.href = url;
 }
 
+function swiper() {
+    // TODO: 数据设置完毕后,需要设置幻灯片对象，开启幻灯片滚动
+    var mySwiper = new Swiper ('.swiper-container', {
+        loop: true,
+        autoplay: 2000,
+        autoplayDisableOnInteraction: false,
+        pagination: '.swiper-pagination',
+        paginationClickable: true
+    });
+}
+
 $(document).ready(function(){
     // TODO: 检查用户的登录状态
     $.get('/api/1.0/sessions', function (response) {
@@ -71,25 +82,39 @@ $(document).ready(function(){
     })
 
     // TODO: 获取幻灯片要展示的房屋基本信息
+    $.get('/api/1.0/houses/index', function (response) {
+        if (response.errno == '0'){
+            var swiper_html = template('swiper-houses-tmpl', {'houses':response.data.house_dict_list});
+            $('.swiper-wrapper').html(swiper_html);
 
-    // TODO: 数据设置完毕后,需要设置幻灯片对象，开启幻灯片滚动
-    var mySwiper = new Swiper ('.swiper-container', {
-        loop: true,
-        autoplay: 2000,
-        autoplayDisableOnInteraction: false,
-        pagination: '.swiper-pagination',
-        paginationClickable: true
-    });
+            swiper();
+        } else {
+            alert(response.errmsg)
+        }
+    })
+
 
     // TODO: 获取城区信息,获取完毕之后需要设置城区按钮点击之后相关操作
+    $.get('/api/1.0/areas',function(response){
+        if (response.errno == '0'){
+            var area_html = template('area-list-tmpl', {'areas':response.data.area_dict_list});
+            $('.area-list').html(area_html);
 
-    // TODO: 城区按钮点击之后相关操作
-    $(".area-list a").click(function(e){
-        $("#area-btn").html($(this).html());
-        $(".search-btn").attr("area-id", $(this).attr("area-id"));
-        $(".search-btn").attr("area-name", $(this).html());
-        $("#area-modal").modal("hide");
+
+            // TODO: 城区按钮点击之后相关操作
+            $(".area-list a").click(function(e){
+            $("#area-btn").html($(this).html());
+            $(".search-btn").attr("area-id", $(this).attr("area-id"));
+            $(".search-btn").attr("area-name", $(this).html());
+            $("#area-modal").modal("hide");
+             });
+        } else {
+            alert(response.errmsg);
+        }
     });
+
+
+
 
     $('.modal').on('show.bs.modal', centerModals);      //当模态框出现的时候
     $(window).on('resize', centerModals);               //当窗口大小变化的时候
