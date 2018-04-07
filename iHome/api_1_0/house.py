@@ -204,11 +204,23 @@ def get_house_index():
 @api.route('/houses/search')
 def get_houses_search():
 
+    # 获取参数
+    aid = request.args.get('aid')
+
+    house_query = House.query
+
     try:
-        houses = House.query.all()
+
+        # 根据参数进行过滤
+        if aid:
+            house_query = house_query.filter(House.area_id==aid)
+
+
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="房屋信息为空")
+
+    houses = House.query.all()
 
     house_dict_list = []
     for house in houses:

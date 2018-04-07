@@ -52,6 +52,11 @@ def register():
         db.session.rollback()
         return jsonify(errno=RET.DBERR, errmsg='保存注册信息失败')
 
+    # 注册成功马上登陆:记录用户session信息(登陆状态)
+    session['user_id'] = user.id
+    session['mobile'] = user.mobile
+    session['name'] = user.name
+
     # 返回
     return jsonify(errno=RET.OK, errmsg='注册成功')
 

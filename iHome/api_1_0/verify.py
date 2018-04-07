@@ -111,6 +111,9 @@ def get_sms_code():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg=u'保存短信验证码失败')
 
+    # 开发测试时,直接在控制台输出,方便调试
+    current_app.logger.debug(sms_code)
+
     result = CCP().send_template_sms(mobile, [sms_code, constants.HOME_PAGE_DATA_REDIS_EXPIRES / 60], '1')
     if result == 0:
         return jsonify(errno=RET.OK, errmsg=u'发送验证码成功')
