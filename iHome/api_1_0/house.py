@@ -205,8 +205,16 @@ def get_house_index():
 def get_houses_search():
 
     # 获取参数
-    aid = request.args.get('aid')
-    sk = request.args.get('sk')
+    aid = request.args.get('aid')   #　地区id
+    sk = request.args.get('sk')     # 排序方式
+    p = request.args.get('p', 1)    # 页数
+
+    # 校验参数
+    try:
+        p = int(p)  # 清除非法值
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
     house_query = House.query
 
@@ -215,16 +223,22 @@ def get_houses_search():
         if aid:
             house_query = house_query.filter(House.area_id==aid)
 
-            # 排序
-            if sk:
-                if sk == 'booking':
-                    house_query = house_query.order_by(House.order_count.desc())
-                elif sk == 'price-inc':
-                    house_query = house_query.order_by(House.price)
-                elif sk == 'price-desc':
-                    house_query = house_query.order_by(House.price.desc())
-                else:
-                    house_query = house_query.order_by(House.create_time.desc())
+        # 排序
+        if sk:
+            if sk == 'booking':
+                house_query = house_query.order_by(House.order_count.desc())
+            elif sk == 'price-inc':
+                house_query = house_query.order_by(House.price)
+            elif sk == 'price-desc':
+                house_query = house_query.order_by(House.price.desc())
+            else:
+                house_query = house_query.order_by(House.create_time.desc())
+
+        # 分页
+        # 参数: 当前页码,总页数,为空时是否输出错误
+        paginate = house_query.paginate(p, constants.HOUSE_LIST_PAGE_CAPACITY, False)
+        total_page = paginate.pages     # 总页数
+        houses = paginate.items        # 当前页对象列表
 
     except Exception as e:
         current_app.logger.error(e)
@@ -232,10 +246,15 @@ def get_houses_search():
 
 
 
-    houses = house_query.all()
+    # houses = house_query.all()
 
     house_dict_list = []
     for house in houses:
         house_dict_list.append(house.to_basic_dict())
 
-    return jsonify(errno=RET.OK,errmsg='OK', data=house_dict_list)
+    params = {
+        'house_dict_list':house_dict_list,
+        'total_page':total_page
+    }
+
+    return jsonify(errno=RET.OK,errmsg='OK', data=params)
