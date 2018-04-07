@@ -76,7 +76,7 @@ $(document).ready(function(){
             if (areaId) {
                 for (var i=0; i<data.data.area_dict_list.length; i++) {
                     areaId = parseInt(areaId);
-                    if (data.area_dict_list[i].aid == areaId) {
+                    if (data.data.area_dict_list[i].aid == areaId) {
                         $(".filter-area").append('<li area-id="'+ data.data.area_dict_list[i].aid+'" class="active">'+ data.data.area_dict_list[i].aname+'</li>');
                     } else {
                         $(".filter-area").append('<li area-id="'+ data.data.area_dict_list[i].aid+'">'+ data.data.area_dict_list[i].aname+'</li>');
