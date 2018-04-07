@@ -199,3 +199,19 @@ def get_house_index():
 
 
 #
+
+# 搜索房屋信息
+@api.route('/houses/search')
+def get_houses_search():
+
+    try:
+        houses = House.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="房屋信息为空")
+
+    house_dict_list = []
+    for house in houses:
+        house_dict_list.append(house.to_basic_dict())
+
+    return jsonify(errno=RET.OK,errmsg='OK', data=house_dict_list)
