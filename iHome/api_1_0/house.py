@@ -206,7 +206,8 @@ def get_houses_search():
 
     # 获取参数
     aid = request.args.get('aid')
-    current_app.logger.debug(aid)
+    sk = request.args.get('sk')
+
     house_query = House.query
 
     try:
@@ -214,9 +215,22 @@ def get_houses_search():
         if aid:
             house_query = house_query.filter(House.area_id==aid)
 
+            # 排序
+            if sk:
+                if sk == 'booking':
+                    house_query = house_query.order_by(House.order_count.desc())
+                elif sk == 'price-inc':
+                    house_query = house_query.order_by(House.price)
+                elif sk == 'price-desc':
+                    house_query = house_query.order_by(House.price.desc())
+                else:
+                    house_query = house_query.order_by(House.create_time.desc())
+
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="房屋信息为空")
+
+
 
     houses = house_query.all()
 
