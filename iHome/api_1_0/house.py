@@ -2,11 +2,13 @@
 from flask import current_app, g, jsonify, request, session
 from iHome import constants
 from iHome.api_1_0 import api
-from iHome.models import Area, House, Facility, HouseImage
+from iHome.models import Area, House, Facility, HouseImage, Order
 from iHome.utils.response_code import RET
 from iHome.utils.common import login_required
 from iHome.utils.image_storage import upload_image
 from iHome import db,redis_store
+import datetime
+
 
 # 查询地区信息
 @api.route('/areas')
@@ -208,13 +210,35 @@ def get_houses_search():
     aid = request.args.get('aid')   #　地区id
     sk = request.args.get('sk')     # 排序方式
     p = request.args.get('p', 1)    # 页数
+    sd = request.args.get('startDate', '')  # 开始时间
+    ed = request.args.get('endDate', '')    # 结束时间
 
     # 校验参数
     try:
         p = int(p)  # 清除非法值
+
+        # 转为datetime格式
+        if sd:
+            sd = datetime.datetime().strptime(sd, '%Y-%m-%d')
+
+        if ed:
+            ed = datetime.datetime().strptime(ed, '%Y-%m-%d')
+
+        # 校验大小
+        if sd and ed:
+            assert sd < ed , Exception('时间错误')
+
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    # 在查询数据库前,先查询缓存
+    try:
+        name = 'house_list_%s_%s_%s_%s' % (aid, sd, ed, sk)
+        params = redis_store.hget(name, p)
+        return jsonify(errno=RET.OK, errmsg="OK", data=eval(params))
+    except Exception as e:
+        current_app.logger.error(e)
 
     house_query = House.query
 
@@ -222,6 +246,21 @@ def get_houses_search():
         # 根据参数进行过滤
         if aid:
             house_query = house_query.filter(House.area_id==aid)
+
+        # 根据时间进行过滤
+        # 获取冲突的房屋id,再进行取非
+        conflict_orders = []
+
+        if sd and ed:
+            conflict_orders = Order.query.filter(ed > Order.begin_date,sd < Order.end_date).all()
+        elif sd:
+            conflict_orders = Order.query.filter(sd < Order.end_date).all()
+        elif ed:
+            conflict_orders = Order.query.filter(ed > Order.begin_date).all()
+
+        if conflict_orders:
+            conflict_house_ids = [order.house_id for order in conflict_orders]
+            house_query = house_query.filter(House.id.notin_(conflict_house_ids))
 
         # 排序
         if sk:
@@ -256,5 +295,17 @@ def get_houses_search():
         'house_dict_list':house_dict_list,
         'total_page':total_page
     }
+
+    # 写入缓存
+    try:
+
+        name = 'house_list_%s_%s_%s_%s' %(aid, sd, ed, sk)
+        pipeline = redis_store.pipeline()
+        pipeline.multi()
+        redis_store.hset(name, p, params)
+        redis_store.expire(name, constants.HOUSE_LIST_REDIS_EXPIRES)
+        pipeline.execute()
+    except Exception as e:
+        current_app.logger.error(e)
 
     return jsonify(errno=RET.OK,errmsg='OK', data=params)

@@ -70,7 +70,7 @@ function updateHouseData(action) {
 
 
        } else {
-           alert(response.msg);
+           alert(response.errmsg);
        }
     });
 }
