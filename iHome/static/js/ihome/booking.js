@@ -64,7 +64,7 @@ $(document).ready(function(){
             // 渲染页面,没有art-template,手动渲染
             $('.house-info>img').attr('src', response.data.house.img_urls[0]);
             $('.house-info h3').html(response.data.house.title);
-            $('.house-info span').html(response.data.house.price);
+            $('.house-info span').html(response.data.house.price / 100);
         }
     })
     // TODO: 订单提交
