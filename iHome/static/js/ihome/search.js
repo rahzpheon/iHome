@@ -45,6 +45,16 @@ function updateHouseData(action) {
         p:next_page
     };
     // TODO: 获取房屋列表信息
+    $.get('/api/1.0/houses/search', function(response){
+       if (response.errno == '0'){
+           // 显示所有房屋信息
+           var house_html = template('house-list-tmpl', {'houses':response.data});
+           $('.house-list').html(house_html);
+
+       } else {
+           alert(response.msg);
+       }
+    });
 }
 
 $(document).ready(function(){
@@ -60,21 +70,21 @@ $(document).ready(function(){
 
 
     // 获取筛选条件中的城市区域信息
-    $.get("/api/v1.0/areas", function(data){
+    $.get("/api/1.0/areas", function(data){
         if ("0" == data.errno) {
             var areaId = queryData["aid"];
             if (areaId) {
-                for (var i=0; i<data.data.length; i++) {
+                for (var i=0; i<data.area_dict_list.length; i++) {
                     areaId = parseInt(areaId);
-                    if (data.data[i].aid == areaId) {
-                        $(".filter-area").append('<li area-id="'+ data.data[i].aid+'" class="active">'+ data.data[i].aname+'</li>');
+                    if (data.area_dict_list[i].aid == areaId) {
+                        $(".filter-area").append('<li area-id="'+ data.area_dict_list[i].aid+'" class="active">'+ data.area_dict_list[i].aname+'</li>');
                     } else {
-                        $(".filter-area").append('<li area-id="'+ data.data[i].aid+'">'+ data.data[i].aname+'</li>');
+                        $(".filter-area").append('<li area-id="'+ data.area_dict_list[i].aid+'">'+ data.area_dict_list[i].aname+'</li>');
                     }
                 }
             } else {
-                for (var i=0; i<data.data.length; i++) {
-                    $(".filter-area").append('<li area-id="'+ data.data[i].aid+'">'+ data.data[i].aname+'</li>');
+                for (var i=0; i<data.area_dict_list.length; i++) {
+                    $(".filter-area").append('<li area-id="'+ data.area_dict_list[i].aid+'">'+ data.area_dict_list[i].aname+'</li>');
                 }
             }
             // 在页面添加好城区选项信息后，更新展示房屋列表信息

@@ -12,13 +12,27 @@ from iHome import db,redis_store
 @api.route('/areas')
 def get_areas():
 
-    # 获取所有地区对象
-    areas = Area.query.all()
+    # 尝试从缓存中读取地区信息
+    try:
+        area_dict_list = redis_store.get('Areas')
+    except Exception as e:
+        current_app.logger.error(e)
 
-    # 将所有地区对象的信息放入列表
-    area_dict_list = []
-    for area in areas:
-        area_dict_list.append(area.to_dict())
+    if not area_dict_list:
+
+        # 获取所有地区对象
+        areas = Area.query.all()
+
+        # 将所有地区对象的信息放入列表
+        area_dict_list = []
+        for area in areas:
+            area_dict_list.append(area.to_dict())
+
+        # 将内容进行缓存
+        redis_store.set('Areas', area_dict_list, constants.AREA_INFO_REDIS_EXPIRES)
+
+    else:
+        area_dict_list = eval(area_dict_list)
 
     # 放入字典中,在前端调用时更加直观
     params = {'area_dict_list':area_dict_list}
@@ -182,3 +196,6 @@ def get_house_index():
         house_dict_list.append(house.to_basic_dict())
 
     return jsonify(errno=RET.OK, errmsg="", data={'house_dict_list':house_dict_list})
+
+
+#
